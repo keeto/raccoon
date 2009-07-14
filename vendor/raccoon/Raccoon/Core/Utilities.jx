@@ -1,3 +1,11 @@
+/*
+Script: Utilities.jx
+	MooTools extensions and other useful functions.
+
+License:
+	MIT-style license.
+*/
+
 (function(){
 
 this.echo = function(){
