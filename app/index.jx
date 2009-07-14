@@ -1,0 +1,13 @@
+try {
+	include('../vendor/raccoon/raccoon.jx');
+	new Raccoon().dispatch();
+}
+catch(e) {
+	response.write('<html> \
+	<head><title>Oops!</title> \
+	<style>body {font-family: "Helvetica Neue", Arial, sans-serif}</style> \
+	</head><body> \
+	<h1>An Error Occurred:</h1> \
+	<p>'+e+'</p> \
+	</body></html>');
+}

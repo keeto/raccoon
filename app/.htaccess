@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # If your DocumentRoot is set to the app/
+    RewriteRule ^(.*)$ index.jx?url=$1 [QSA,L]
+    
+    # If your DocumentRoot is set right outside app/
+    #RewriteRule ^(.*)$ app/index.jx?url=$1 [QSA,L]
+</IfModule>

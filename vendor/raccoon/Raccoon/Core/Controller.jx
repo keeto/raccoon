@@ -1,0 +1,80 @@
+/*
+Script: Controller.js
+	Base class for all Controllers.
+
+License:
+	MIT-style license.
+*/
+
+
+include('template');
+
+(function(){
+
+this.Controller = new Class({
+
+	baseLayout: '',
+	templates: null,
+
+	headers: new Table(),
+	scripts: '',
+	stylesheets: '',
+
+	initialize: function(){
+		this.baseLayout = Raccoon.Config.get('baseLayout');
+		this.templates = new Template({
+			path: Raccoon.Config.get('layouts'),
+			suffix: Raccoon.Config.get('layoutSuffix')
+		});
+	},
+
+	setHeader: function(key, value){
+		this.headers.set(key, value);
+	},
+
+	setHeaders: function(pairs){
+		this.headers.sets(pairs);
+	},
+
+	render: function(file, noLayout){
+		if (noLayout) {
+			return this.renderPartial(file);
+		} else {
+			this.content = this.renderPartial(file);
+			return this.renderPartial(this.baseLayout);
+		}
+	},
+
+	renderPartial: function(path){
+		return this.templates.process(path, this);
+	},
+
+	renderStatic: function(path){
+		var file = new File(Raccoon.Config.get('layouts') + path);
+		file.open('r');
+		var output = file.read();
+		file.close();
+		return output;
+	},
+
+	redirect: function(url){
+		response.headers({'Location': url});
+	},
+
+	script: function(items){
+		items = Array.from(items);
+		for (var x = 0, y = items.length; x < y; x++) {
+			this.scripts += '<script src="/assets/scripts/'+ items[x] +'.js" type="text/javascript"></script>\n';
+		}
+	},
+
+	style: function(items){
+		items = Array.from(items);
+		for (var x = 0, y = items.length; x < y; x++) {
+			this.stylesheets += '<link rel="stylesheet" href="/assets/stylesheets/'+ items[x] +'.css" type="text/css" />\n';
+		}
+	}
+
+});
+
+})();

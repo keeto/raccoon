@@ -1,0 +1,57 @@
+/*
+Script: HTTPCurl.js
+	A pseudo-curl library over HTTP.
+
+License:
+	MIT-style license.
+*/
+
+
+include("socket");
+include("./Curl.jx");
+
+(function(){
+	this.HTTPCurl = new Class({
+
+		Extends: Curl,
+
+		initialize: function(options){
+			this.setOptions(options);
+			this.socket = new Socket(Socket.PF_INET, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
+			this.headers = Object.append({}, this.options.headers);
+		},
+
+		request: function(uri, method, data){
+			var parts = uri.match(/^ *(http:\/\/)?([^:\/]+)(:([0-9]+))?(.*)$/);
+			var host = parts[2];
+			var port = parts[4] || 80;
+			var url = parts[5];
+
+			var headers = this.headers;
+			data = data || '';
+			if (({'PUT': 1, 'POST': 1})[method] && data) {
+				headers = Object.append(headers, {'Content-Length': data.length});
+			}
+
+			var curl_request = [method, url, 'HTTP/1.0\r\n'].join(' ');
+			for (var key in headers) {
+				curl_request += key + ': ' + headers[key] + '\r\n';
+			}
+			curl_request += '\r\n' + data + '\r\n';
+
+			this.socket.connect(Socket.getAddrInfo(host), port);
+			this.socket.send(curl_request);
+
+			var curl_response = '';
+			do {
+				var part = this.socket.receive(1024);
+				for (var i=0;i<part.length;i++) {
+					curl_response += part[i];
+				}
+			} while (part.length > 0);
+			this.socket.close();
+			return this.response(curl_response);
+		}
+
+	});
+})();

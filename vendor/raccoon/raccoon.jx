@@ -1,0 +1,166 @@
+/*
+Script: Raccoon.js
+	Raccoon: The Sneaky Little Server-Side JS Framework
+
+License:
+	MIT-style license.
+
+Copyright:
+	Copyright (c) 2009 Mark Obcena, <http://keetology.com/>
+
+Code and Documentation:
+	Team Raccoon <http://raccoon.keetology.com/>
+*/
+
+
+include('./Raccoon/Core/MooTools.jx');
+include('./Raccoon/Core/Utilities.jx');
+include('./Raccoon/Core/Controller.jx');
+include('./Raccoon/CouchDB/CouchDB.jx');
+
+(function(global){
+
+request.rawurl = request.get['url'] || "";
+request.url = request.rawurl.rtrim('/');
+
+var currentDir = system.getcwd();
+var instance = null;
+
+var Raccoon = this.Raccoon = new Class({
+
+	routes: [],
+
+	initialize: function(config){
+		if (instance) return instance;
+		this.configure(config);
+		this.loadControllers();
+		instance = this;
+	},
+
+	'protected configure': function(path){
+		path = path || currentDir + '/../config/raccoon.cfg';
+		var config = include(path).raccoon_config;
+		config.layouts = config.layouts || {};
+		config.library = config.library || {};
+
+		if (config.database) {
+			switch (config.database.adapter) {
+				case 'couchdb':
+					Raccoon.CouchDB = new CouchDB(config.database);
+					break;
+				case 'mysql':
+					break;
+				case 'sqlite':
+					break;
+			}
+		}
+
+		Raccoon.Config.sets({
+			layouts: (config.layouts.path || '{appDir}/layouts/').parsePath(),
+			layoutSuffix: config.layouts.suffix || 'html',
+			baseLayout: config.layouts.base || 'base',
+			controllers: (config.controllers || '{appDir}/controllers/').parsePath(),
+			libraryPath: (config.library.path || '{appDir}/../vendor/').parsePath()
+		});
+
+		if (config.library.autoload) Raccoon.loadLib(config.library.autoload);
+
+		if (config.routes.main) {
+			var matches = config.routes.main.match(/\{(class|method|args)\}/g);
+			if (typeOf(matches) === 'array') {
+				Raccoon.Config.set('defaultMap', matches.map(function(item){
+					return item.replace(/\{(.*)\}/, '$1');
+				}));
+			}
+		}
+
+		for (var x = 0, y = config.routes['map'].length; x < y; x++) {
+			this.addRoute.apply(this, config.routes['map'][x]);
+		}
+
+	},
+
+	'protected loadControllers': function(){
+		var dir = Raccoon.Config.get('controllers');
+		var ctrls = new Directory(dir).listFiles();
+		for (var x = 0, y = ctrls.length; x < y; x++) {
+			include(dir + ctrls[x]);
+		}
+	},
+
+	addRoute: function(map, klass, action, method){
+		this.routes.push({
+			map: new RegExp("^" + map + "$"),
+			klass: klass,
+			action: action || 'index',
+			method: method || 'GET'
+		});
+	},
+
+	addRoutes: function(routes){
+		for (var x = 0, y = routes.length; x < y; x++) {
+			this.addRoute.apply(this, routes[x]);
+		}
+	},
+
+	dispatch: function(){
+		for (var x = 0, y = this.routes.length; x < y; x ++) {
+			var route = this.routes[x];
+			var matches = request.url.match(route.map);
+			if (matches && request.method == route.method) {
+				matches.shift();
+				return this.resolve(route.klass, route.action, matches);
+			}
+		}
+
+		var defaultMap = Raccoon.Config.get('defaultMap');
+		if (defaultMap) {
+			var pieces = request.url.split('/');
+			var assocs = Object.from(defaultMap, pieces);
+			return this.resolve(assocs['class'].capitalize(), assocs['method'] || 'index', assocs['args'] || []);
+		}
+
+		this.handle404();
+	},
+
+	'protected resolve': function(klass, action, args){
+		if (!global[klass]) throw new Error('The Controller Class "' + klass + '" is undefined.');
+		var item = new global[klass]();
+
+		if (!item[action]) throw new Error('The "' + action + '" method of Class "' + klass + '" is undefined.');
+		item[action].apply(item, Array.from(args));
+
+		item.headers.each(function(header, value){
+			response.header(header, value);
+		});
+		return null;
+	},
+
+	handle404: function(){
+		new Defaults().do404();
+	}
+
+});
+
+Raccoon.extend({
+
+	version: '0.2',
+
+	Config: new Table(),
+
+	getInstance: function(config) {
+		if (instance) return instance;
+		return new Raccoon(config);
+	},
+
+	loadLib: function(libs) {
+		var libPath = Raccoon.Config.get('libraryPath');
+		Array.from(libs).each(function(lib){
+			var file = libPath + lib;
+			if (new File(file).exists()) include(file);
+		});
+	}
+
+});
+
+})(this);

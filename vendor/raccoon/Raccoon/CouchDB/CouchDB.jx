@@ -1,0 +1,94 @@
+/*
+Script: CouchDB.js
+	A Simple CouchDB REST client.
+
+License:
+	MIT-style license.
+*/
+
+
+include('./Curl.jx');
+include('./HTTPCurl.jx');
+
+var CouchDB = new Class({
+
+	Implements: Options,
+
+	options: {
+		host: 'http://127.0.0.1',
+		port: '',
+		db: '',
+		username: '',
+		password: ''
+	},
+
+	hostURL: '',
+	dbURL: '',
+	curl: null,
+
+	initialize: function(options){
+		this.setOptions(options);
+		this.options.host = this.options.host.rtrim('/');
+		this.hostURL = (this.options.port) ? [this.options.host, this.options.port].join(':') : this.options.host;
+		this.dbURL = [this.hostURL, this.options.db].join('/') + '/';
+
+		this.curl = new (system.exec ? Curl : HTTPCurl)();
+		if (this.options.username && this.options.password) {
+			var auth = Util.base64encode([this.options.username, this.options.password].join(':'));
+			this.curl.setHeader('Authorization', 'Basic ' + auth);
+		}
+	},
+
+	rawRequest: function(method, url, data){
+		data = (data) ? JSON.encode(data) : '';
+		var resp = this.curl.request(url, method, data);
+		if (resp.body) {
+			resp.body = JSON.decode(resp.body);
+		}
+		return resp;
+	},
+
+	request: function(method, url, args, data){
+		url = this.dbURL + this.buildQuery(url, args);
+		return this.rawRequest(method, url, data);
+	},
+
+	dbRequest: function(method, url, args, data){
+		url = [this.hostURL, '/', this.buildQuery(url, args)].join('');
+		return this.rawRequest(method, url, data);
+	},
+
+	buildQuery: function(url, args){
+		var buff = [];
+		for (var key in args) {
+			var value = (({'key':1, 'startkey':1, 'endkey':1})[key]
+						 || args[key] == true) ? JSON.encode(args[key]) : args[key];
+			buff.push([encodeURIComponent(key), '=', encodeURIComponent(value)].join(''));
+		};
+		return (buff.length > 0) ? [url, '?', buff.join('&')].join('') : url;
+	},
+
+	GET: function(url, args, data){
+		return this.request('GET', url, args, data);
+	},
+
+	POST: function(url, args, data){
+		return this.request('POST', url, args, data);
+	},
+
+	PUT: function(url, args, data){
+		return this.request('PUT', url, args, data);
+	},
+
+	DELETE: function(url, args, data){
+		return this.request('DELETE', url, args, data);
+	},
+
+	view: function(design, view, args){
+		var url = ['_design/', design, '/_view/', view].join('');
+		return this.request('GET', url, args);
+	}
+
+});
+
+exports.CouchDB = CouchDB;
