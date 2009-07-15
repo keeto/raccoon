@@ -139,10 +139,12 @@ var Raccoon = this.Raccoon = new Class({
 			throw new Error('The "' + action + '" method of Class "' + klass + '" is undefined.');
 		}
 		item[action].apply(item, Array.from(args));
-
-		item.headers.each(function(header, value){
-			response.header(header, value);
+		item.headers.each(function(value, header){
+			var h = {}; h[header] = value;
+			response.header(h);
 		});
+		item.spurt();
+
 		return null;
 	}
 

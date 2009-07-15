@@ -19,6 +19,7 @@ this.Controller = new Class({
 	templates: null,
 
 	headers: new Table(),
+	output: [],
 
 	initialize: function(){
 		this.baseLayout = Raccoon.Config.get('baseLayout');
@@ -60,7 +61,15 @@ this.Controller = new Class({
 
 	redirect: function(url){
 		response.headers({'Location': url});
-	}
+	},
+
+	puts: function(str){
+		this.output.push(str);
+	},
+
+	spurt: function(){
+		this.output.join("").echo();
+	},
 
 });
 
