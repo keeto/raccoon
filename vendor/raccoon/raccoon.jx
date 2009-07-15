@@ -14,7 +14,7 @@ Code and Documentation:
 
 
 include('./Raccoon/Core/MooTools.jx');
-include('./Raccoon/Core/Utilities.jx');
+include('./Raccoon/Core/Extras.jx');
 include('./Raccoon/Core/Controller.jx');
 include('./Raccoon/CouchDB/CouchDB.jx');
 

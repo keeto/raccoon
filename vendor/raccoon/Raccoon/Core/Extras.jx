@@ -1,0 +1,44 @@
+/*
+Script: Extras.jx
+	MooTools extensions and other useful functions.
+
+License:
+	MIT-style license.
+*/
+
+(function(){
+
+this.echo = function(){
+	response.write.apply(response, arguments);
+};
+
+String.implement({
+
+	echo: function(){
+		response.write(this);
+	},
+
+	rtrim: function(str) {
+		if (this.lastIndexOf(str) == this.length - 1) return this.substring(0, this.lastIndexOf(str));
+		return this;
+	},
+
+	parsePath: function(){
+		return this.replace(/(\{appDir\})/, system.getcwd()).rtrim('/') + '/';
+	},
+
+	stripSlashes: function(){
+		return this.replace(/\\'/g, "'");
+	}
+
+});
+
+Table.implement({
+
+	sets: function(obj){
+		for (var key in obj) this.set(key, obj[key]);
+	}
+
+});
+
+})();
