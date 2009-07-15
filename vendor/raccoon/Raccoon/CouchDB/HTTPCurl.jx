@@ -17,7 +17,6 @@ include("./Curl.jx");
 
 		initialize: function(options){
 			this.setOptions(options);
-			this.socket = new Socket(Socket.PF_INET, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
 			this.headers = Object.append({}, this.options.headers);
 		},
 
@@ -33,24 +32,54 @@ include("./Curl.jx");
 				headers = Object.append(headers, {'Content-Length': data.length});
 			}
 
-			var curl_request = [method, url, 'HTTP/1.0\r\n'].join(' ');
+			var curl_request = [method, url, 'HTTP/1.1\r\n'].join(' ');
 			for (var key in headers) {
 				curl_request += key + ': ' + headers[key] + '\r\n';
 			}
 			curl_request += '\r\n' + data + '\r\n';
 
-			this.socket.connect(Socket.getAddrInfo(host), port);
-			this.socket.send(curl_request);
+			var socket = new Socket(Socket.PF_INET, Socket.SOCK_STREAM, Socket.IPPROTO_TCP);
+			socket.connect(Socket.getAddrInfo(host), port);
+			socket.send(curl_request);
 
 			var curl_response = '';
 			do {
-				var part = this.socket.receive(1024);
+				var part = socket.receive(1024);
 				for (var i=0;i<part.length;i++) {
 					curl_response += part[i];
 				}
 			} while (part.length > 0);
-			this.socket.close();
-			return this.response(curl_response);
+			socket.close();
+
+			var response = this.response(curl_response);
+			if (response.headers["Transfer-Encoding"] == 'chunked') response.body = this.parseChunked(response.body);
+			return response;
+		},
+
+		parseChunked: function(origBody){
+			var index = 0
+			var ch;
+			var result = "";
+			var body = Util.utf8decode(origBody);
+
+			while (index < body.length) {
+				hex = "";
+				while (index < body.length) {
+					ch = body.charAt(index);
+					if (ch == "\r") { break; }
+					hex += ch;
+					index++;
+				}
+				index += 2;
+
+				var chunkLength = parseInt(hex, 16);
+				if (!chunkLength) { break; }
+				result += body.substring(index, index + chunkLength);
+				index += chunkLength;
+				index += 2;
+			}
+
+			return Util.utf8encode(result);
 		}
 
 	});

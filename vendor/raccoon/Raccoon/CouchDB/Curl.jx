@@ -87,7 +87,7 @@ var Curl = new Class({
 		for (var i=0;i<arr.length;i++) {
 			var parts = arr[i].match(/^ *([^: ]+) *: *(.*)$/);
 			if (parts) {
-				headers[parts[1].toUpperCase()] = parts[2];
+				headers[parts[1].capitalize()] = parts[2];
 			}
 		}
 		var data = body;
