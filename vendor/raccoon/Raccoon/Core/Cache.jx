@@ -1,14 +1,28 @@
-/* Modified of mootools Utilities Storage */
+/*
+Script: Cache.jx
+	Simple caching.
+
+License:
+	MIT-style license.
+
+Acknowledgements:
+	Code inspired by MooTools Utilities/Storage.
+*/
+
+
 include("session");
-exports.Cache = function(){
-	
+
+(function(){
+
+this.Cache = function(){
+
 	var storage = {};
-	
+
 	this.store = (function(object){
 		for (var key in object) storage[key] = object[key];
 		return this;
 	}).overload(Function.overloadPair);
-	
+
 	this.retrieve = (function(object){
 		var keys = [];
 		for (var key in object){
@@ -18,7 +32,7 @@ exports.Cache = function(){
 		}
 		return Object.subset(storage, keys);
 	}).overload(Function.overloadPair);
-	
+
 	this.dump = (function(){
 		return Object.subset(storage, arguments, true);
 	}).overload(Function.overloadList);
@@ -27,7 +41,6 @@ exports.Cache = function(){
 		return storage[key];
 	};
 	this.set = function(key,value) {
-		//response.write(JSON.encode([key,value]));
 		storage[key] = value;
 		return this;
 	};
@@ -77,5 +90,7 @@ exports.Cache = function(){
 	};
 
 	return this;
-	
+
 };
+
+})();

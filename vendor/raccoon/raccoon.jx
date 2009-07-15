@@ -14,8 +14,8 @@ Code and Documentation:
 
 
 include('./Raccoon/Core/MooTools.jx');
-include('./Raccoon/Core/Cache.jx');
 include('./Raccoon/Core/Extras.jx');
+include('./Raccoon/Core/Cache.jx');
 include('./Raccoon/Core/Controller.jx');
 include('./Raccoon/CouchDB/CouchDB.jx');
 
@@ -41,16 +41,20 @@ var Raccoon = this.Raccoon = new Class({
 	'protected configure': function(path){
 		path = path || currentDir + '/../config/raccoon.cfg';
 		var config = include(path).raccoon_config;
-		var cache = Raccoon.Cache = new Cache();
-		var cacheDir = system.getcwd()+"/_cache/";
-		var cachefiles = new Directory(cacheDir).listFiles();
-		cache.set('dir',cacheDir);
-		cachefiles.each(function(item) { cache.set(""+item,[cacheDir,item].join('')); });
-
+		config.events = config.events || false;
 		config.layouts = config.layouts || {};
 		config.library = config.library || {};
-		config.events = config.events || false;
+
 		if (config.events) Raccoon.addEvents(config.events);
+
+		var cache = Raccoon.Cache = new Cache();
+		var cacheDir = currentDir + '/_cache/';
+		var cachefiles = new Directory(cacheDir).listFiles();
+		cache.set('dir',cacheDir);
+		cachefiles.each(function(item){
+			cache.set('' + item, [cacheDir,item].join(''));
+		});
+
 		if (config.database) {
 			switch (config.database.adapter) {
 				case 'couchdb':
@@ -159,16 +163,16 @@ var Raccoon = this.Raccoon = new Class({
 
 Raccoon.extend({
 
-	version: '0.2',
+	version: '0.2dev',
 
 	Config: new Table(),
 
-	getInstance: function(config) {
+	getInstance: function(config){
 		if (instance) return instance;
 		return new Raccoon(config);
 	},
 
-	loadLib: function(libs) {
+	loadLib: function(libs){
 		var libPath = Raccoon.Config.get('libraryPath');
 		Array.from(libs).each(function(lib){
 			var file = libPath + lib;
