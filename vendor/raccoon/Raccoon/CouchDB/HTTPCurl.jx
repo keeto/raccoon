@@ -4,6 +4,10 @@ Script: HTTPCurl.jx
 
 License:
 	MIT-style license.
+
+Acknowledgements:
+	Code for HTTPCurl::parseChunked() lifted from the official v8cgi
+	HTTP.ClientResponse library, Copyrighted 2009, Ondrej Zara.
 */
 
 
