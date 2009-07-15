@@ -13,12 +13,12 @@ include('template');
 
 this.Controller = new Class({
 
+	Implements: Assets,
+
 	baseLayout: '',
 	templates: null,
 
 	headers: new Table(),
-	scripts: '',
-	styles: '',
 
 	initialize: function(){
 		this.baseLayout = Raccoon.Config.get('baseLayout');
@@ -26,6 +26,7 @@ this.Controller = new Class({
 			path: Raccoon.Config.get('layouts'),
 			suffix: Raccoon.Config.get('layoutSuffix')
 		});
+		this.loadAssets();
 	},
 
 	setHeader: function(key, value){
@@ -59,20 +60,6 @@ this.Controller = new Class({
 
 	redirect: function(url){
 		response.headers({'Location': url});
-	},
-
-	script: function(items){
-		items = Array.from(items);
-		for (var x = 0, y = items.length; x < y; x++) {
-			this.scripts += '<script src="/assets/scripts/'+ items[x] +'.js" type="text/javascript"></script>\n';
-		}
-	},
-
-	style: function(items){
-		items = Array.from(items);
-		for (var x = 0, y = items.length; x < y; x++) {
-			this.styles += '<link rel="stylesheet" href="/assets/styles/'+ items[x] +'.css" type="text/css" />\n';
-		}
 	}
 
 });
