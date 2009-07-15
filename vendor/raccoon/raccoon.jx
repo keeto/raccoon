@@ -127,7 +127,7 @@ var Raccoon = this.Raccoon = new Class({
 		Raccoon.fireEvent('route404', [request.url]);
 	},
 
-	'protected resolve': function(klass, action, args){
+	resolve: function(klass, action, args){
 		if (!global[klass]) {
 		 response.status(404);
 		 throw new Error('The Controller Class "' + klass + '" is undefined.');
@@ -167,6 +167,10 @@ Raccoon.extend({
 			var file = libPath + lib;
 			if (new File(file).exists()) include(file);
 		});
+	},
+
+	resolve: function(klass, action, args){
+		return Raccoon.getInstance().resolve(klass, action || 'index', args || []);
 	}
 
 });
