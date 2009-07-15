@@ -18,7 +18,7 @@ this.Controller = new Class({
 
 	headers: new Table(),
 	scripts: '',
-	stylesheets: '',
+	styles: '',
 
 	initialize: function(){
 		this.baseLayout = Raccoon.Config.get('baseLayout');
@@ -71,7 +71,7 @@ this.Controller = new Class({
 	style: function(items){
 		items = Array.from(items);
 		for (var x = 0, y = items.length; x < y; x++) {
-			this.stylesheets += '<link rel="stylesheet" href="/assets/stylesheets/'+ items[x] +'.css" type="text/css" />\n';
+			this.styles += '<link rel="stylesheet" href="/assets/styles/'+ items[x] +'.css" type="text/css" />\n';
 		}
 	}
 

@@ -16,7 +16,7 @@ var CouchDB = new Class({
 
 	options: {
 		host: 'http://127.0.0.1',
-		port: '',
+		port: '5984',
 		db: '',
 		username: '',
 		password: ''

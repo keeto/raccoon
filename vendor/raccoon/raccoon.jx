@@ -27,7 +27,6 @@ var currentDir = system.getcwd();
 var instance = null;
 
 var Raccoon = this.Raccoon = new Class({
-
 	routes: [],
 
 	initialize: function(config){
@@ -35,6 +34,7 @@ var Raccoon = this.Raccoon = new Class({
 		this.configure(config);
 		this.loadControllers();
 		instance = this;
+		return instance;
 	},
 
 	'protected configure': function(path){
@@ -42,7 +42,8 @@ var Raccoon = this.Raccoon = new Class({
 		var config = include(path).raccoon_config;
 		config.layouts = config.layouts || {};
 		config.library = config.library || {};
-
+		config.events = config.events || false;
+		if (config.events) Raccoon.addEvents(config.events);
 		if (config.database) {
 			switch (config.database.adapter) {
 				case 'couchdb':
@@ -103,7 +104,7 @@ var Raccoon = this.Raccoon = new Class({
 	},
 
 	dispatch: function(){
-		Raccoon.fireEvent('beforeDispatch', request.url);
+		Raccoon.fireEvent('beforeDispatch', [request.url]);
 
 		for (var x = 0, y = this.routes.length; x < y; x ++) {
 			var route = this.routes[x];
@@ -122,15 +123,21 @@ var Raccoon = this.Raccoon = new Class({
 			Raccoon.fireEvent('dispatch', [request.url, 'defaultRoute']);
 			return this.resolve(assocs['class'].capitalize(), assocs['method'] || 'index', assocs['args'] || []);
 		}
-
-		Raccoon.fireEvent('route404', request.url)
+		response.status(404);
+		Raccoon.fireEvent('route404', [request.url]);
 	},
 
 	'protected resolve': function(klass, action, args){
-		if (!global[klass]) throw new Error('The Controller Class "' + klass + '" is undefined.');
+		if (!global[klass]) {
+		 response.status(404);
+		 throw new Error('The Controller Class "' + klass + '" is undefined.');
+		}
 		var item = new global[klass]();
 
-		if (!item[action]) throw new Error('The "' + action + '" method of Class "' + klass + '" is undefined.');
+		if (!item[action]) {
+			response.status(404);
+			throw new Error('The "' + action + '" method of Class "' + klass + '" is undefined.');
+		}
 		item[action].apply(item, Array.from(args));
 
 		item.headers.each(function(header, value){
