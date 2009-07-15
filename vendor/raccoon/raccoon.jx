@@ -14,6 +14,7 @@ Code and Documentation:
 
 
 include('./Raccoon/Core/MooTools.jx');
+include('./Raccoon/Core/Cache.jx');
 include('./Raccoon/Core/Extras.jx');
 include('./Raccoon/Core/Controller.jx');
 include('./Raccoon/CouchDB/CouchDB.jx');
@@ -40,6 +41,12 @@ var Raccoon = this.Raccoon = new Class({
 	'protected configure': function(path){
 		path = path || currentDir + '/../config/raccoon.cfg';
 		var config = include(path).raccoon_config;
+		var cache = Raccoon.Cache = new Cache();
+		var cacheDir = system.getcwd()+"/_cache/";
+		var cachefiles = new Directory(cacheDir).listFiles();
+		cache.set('dir',cacheDir);
+		cachefiles.each(function(item) { cache.set(""+item,[cacheDir,item].join('')); });
+
 		config.layouts = config.layouts || {};
 		config.library = config.library || {};
 		config.events = config.events || false;

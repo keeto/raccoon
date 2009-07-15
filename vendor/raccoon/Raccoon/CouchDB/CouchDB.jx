@@ -21,18 +21,17 @@ var CouchDB = new Class({
 		username: '',
 		password: ''
 	},
-
 	hostURL: '',
 	dbURL: '',
 	curl: null,
-
+	cache: null,
 	initialize: function(options){
 		this.setOptions(options);
 		this.options.host = this.options.host.rtrim('/');
 		this.hostURL = (this.options.port) ? [this.options.host, this.options.port].join(':') : this.options.host;
 		this.dbURL = [this.hostURL, this.options.db].join('/') + '/';
-
 		this.curl = new (system.exec ? Curl : HTTPCurl)();
+		this.cache = Raccoon.Cache;
 		if (this.options.username && this.options.password) {
 			var auth = Util.base64encode([this.options.username, this.options.password].join(':'));
 			this.curl.setHeader('Authorization', 'Basic ' + auth);
@@ -85,8 +84,25 @@ var CouchDB = new Class({
 	},
 
 	view: function(design, view, args){
+		var cache = this.cache;
+		var keys = Object.keys(args);
+		var value = Object.values(args);
+		value = String.from(value).replace(/[^0-9A-Za-z]/g,'_');
+		if(keys.contains('key')) var key = args['key'];
+		else var key = "";
+		var match = [design,view,value].join('_')+".json";
+		var x = cache.get(match);
+		var item = [cache.get('dir'),match].join('');
+		if(cache.check(item)){
 		var url = ['_design/', design, '/_view/', view].join('');
-		return this.request('GET', url, args);
+		var resp = this.request('GET', url, args);
+		var retval = cache.File(item,"w",JSON.encode(resp.body),true);
+		return retval;
+		} else {
+		var retval = cache.File(item,"r",false,false);
+		//response.write(retval);
+		return retval;
+		}
 	}
 
 });
