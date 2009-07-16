@@ -42,28 +42,23 @@ this.Template = new Class({
 	initialize: function(options){
 		this.setOptions(options);
 
-		var pattern = {};
-		if (typeOf(this.options.pattern) == 'object') {
-			this.pattern = this.options.pattern.pattern || this.regexps.raccoon.pattern;
-			this.outkey = this.options.pattern.outkey || this.regexps.raccoon.outkey;
+		var pattern = this.options.pattern;
+		if (typeOf(pattern) == 'object') {
+			this.pattern = pattern.pattern || this.regexps.raccoon.pattern;
+			this.outkey = pattern.outkey || this.regexps.raccoon.outkey;
 		} else {
-			this.pattern = this.regexps[this.options.pattern].pattern || this.regexps.raccoon.pattern;
-			this.outkey = this.regexps[this.options.pattern].outkey || this.regexps.raccoon.outkey;
+			this.pattern = this.regexps[pattern].pattern || this.regexps.raccoon.pattern;
+			this.outkey = this.regexps[pattern].outkey || this.regexps.raccoon.outkey;
 		}
 	},
 
 	parse: function(str, data){
 		str = str.replace(/\n/g, '%%%');
 		var outkey = this.outkey;
-		var del = '_%_';
-		var delexp = new RegExp(del, 'g');
-		str = str.replace(this.pattern, function(matchStr, item){
-			var buffer = [del, ';\n'];
-			if (matchStr.charAt(2) == outkey) {
-				buffer.push(['buffer  += ', item, ';\n'].join(''));
-			} else {
-				buffer.push([item, '\n'].join(''));
-			}
+		var del = '_%_', delexp = /_%_/g;
+		str = str.replace(this.pattern, function(match, item){
+			var chunk = (match.charAt(2) == outkey ? ['buffer  += ', item, ';\n'] : [item, '\n']).join('');
+			var buffer = [del, ';\n', chunk];
 			buffer.push('buffer += '+ del);
 			return buffer.join('');
 		});

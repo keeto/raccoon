@@ -10,6 +10,7 @@ Acknowledgements:
 	HTTP.ClientResponse library, Copyrighted 2009, Ondrej Zara.
 */
 
+include('process');
 
 var Curl = new Class({
 
@@ -54,7 +55,7 @@ var Curl = new Class({
 		buff.push('"' + url + '"');
 
 		var cmd = buff.join(" ");
-		var result = system.exec(cmd);
+		var result = new Process().exec(cmd);
 		return this.response(result);
 	},
 
