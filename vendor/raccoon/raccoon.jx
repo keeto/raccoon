@@ -23,8 +23,9 @@ include('./Raccoon/CouchDB/CouchDB.jx');
 
 request.rawurl = request.get['url'] || "";
 request.url = request.rawurl.rtrim('/');
-
+//HTML.dump(system);
 var currentDir = system.getcwd();
+
 var instance = null;
 
 var Raccoon = this.Raccoon = new Class({
