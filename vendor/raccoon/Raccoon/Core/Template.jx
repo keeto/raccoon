@@ -16,7 +16,7 @@ this.Template = new Class({
 	Implements: Options,
 
 	options: {
-		pattern: 'asp',
+		pattern: 'raccoon',
 		path: '',
 		suffix: ''
 	},
@@ -47,8 +47,8 @@ this.Template = new Class({
 			this.pattern = this.options.pattern.pattern || this.regexps.raccoon.pattern;
 			this.outkey = this.options.pattern.outkey || this.regexps.raccoon.outkey;
 		} else {
-			this.pattern = this.regexps.raccoon.pattern;
-			this.outkey = this.regexps.raccoon.outkey;
+			this.pattern = this.regexps[this.options.pattern].pattern || this.regexps.raccoon.pattern;
+			this.outkey = this.regexps[this.options.pattern].outkey || this.regexps.raccoon.outkey;
 		}
 	},
 
