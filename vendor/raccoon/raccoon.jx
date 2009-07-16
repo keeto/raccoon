@@ -71,9 +71,10 @@ var Raccoon = this.Raccoon = new Class({
 		}
 
 		Raccoon.Config.sets({
-			layouts: (config.layouts.path || '{appDir}/layouts/').parsePath(),
+			layoutPath: (config.layouts.path || '{appDir}/layouts/').parsePath(),
 			layoutSuffix: config.layouts.suffix || 'html',
-			baseLayout: config.layouts.base || 'base',
+			layoutTags: config.layouts.tagstyle || 'raccoon',
+			layoutBase: config.layouts.base || 'base',
 			controllers: (config.controllers || '{appDir}/controllers/').parsePath(),
 			libraryPath: (config.library.path || '{appDir}/../vendor/').parsePath()
 		});
