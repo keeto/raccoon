@@ -31,7 +31,7 @@ var CouchDB = new Class({
 		this.hostURL = (this.options.port) ? [this.options.host, this.options.port].join(':') : this.options.host;
 		this.dbURL = [this.hostURL, this.options.db].join('/') + '/';
 		this.curl = new (Process ? Curl : HTTPCurl)();
-		this.cache = (Raccoon.Cache.get('couchdb.cache'))? Raccoon.Cache : false;
+		this.cache = (Raccoon.Cache.get('couchdb.cache'))? Raccoon.Cache : false; 
 		if (this.options.username && this.options.password) {
 			var auth = Util.base64encode([this.options.username, this.options.password].join(':'));
 			this.curl.setHeader('Authorization', 'Basic ' + auth);
