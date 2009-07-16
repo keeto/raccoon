@@ -23,8 +23,9 @@ include('./Raccoon/CouchDB/CouchDB.jx');
 
 request.rawurl = request.get['url'] || "";
 request.url = request.rawurl.rtrim('/');
-
+//HTML.dump(system);
 var currentDir = system.getcwd();
+
 var instance = null;
 
 var Raccoon = this.Raccoon = new Class({
@@ -48,6 +49,7 @@ var Raccoon = this.Raccoon = new Class({
 		if (config.events) Raccoon.addEvents(config.events);
 
 		// FOR CLEANUP
+
 		/* added a flag in .cfg to check if cache can be used - mootooled compatibility */
 		if(config.cache){
 		var cache = Raccoon.Cache = new Cache();
