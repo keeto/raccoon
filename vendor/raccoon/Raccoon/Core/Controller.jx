@@ -7,7 +7,7 @@ License:
 */
 
 
-include('template');
+include('./Template.jx');
 
 (function(){
 
