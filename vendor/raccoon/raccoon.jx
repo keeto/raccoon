@@ -71,12 +71,12 @@ var Raccoon = this.Raccoon = new Class({
 		}
 
 		Raccoon.Config.sets({
-			layoutPath: (config.layouts.path || '{appDir}/layouts/').parsePath(),
-			layoutSuffix: config.layouts.suffix || 'html',
-			layoutTags: config.layouts.tagstyle || 'raccoon',
-			layoutBase: config.layouts.base || 'base',
-			controllers: (config.controllers || '{appDir}/controllers/').parsePath(),
-			libraryPath: (config.library.path || '{appDir}/../vendor/').parsePath()
+			'layout.path': (config.layouts.path || '{appDir}/layouts/').parsePath(),
+			'layout.suffix': config.layouts.suffix || 'html',
+			'layout.tags': config.layouts.tagstyle || 'raccoon',
+			'layout.base': config.layouts.base || 'base',
+			'controllers': (config.controllers || '{appDir}/controllers/').parsePath(),
+			'library.path': (config.library.path || '{appDir}/../vendor/').parsePath()
 		});
 
 		if (config.library.autoload) Raccoon.loadLib(config.library.autoload);
@@ -84,7 +84,7 @@ var Raccoon = this.Raccoon = new Class({
 		if (config.routes.main) {
 			var matches = config.routes.main.match(/\{(class|method|args)\}/g);
 			if (typeOf(matches) === 'array') {
-				Raccoon.Config.set('defaultMap', matches.map(function(item){
+				Raccoon.Config.set('routes.default', matches.map(function(item){
 					return item.replace(/\{(.*)\}/, '$1');
 				}));
 			}
@@ -131,7 +131,7 @@ var Raccoon = this.Raccoon = new Class({
 			}
 		}
 
-		var defaultMap = Raccoon.Config.get('defaultMap');
+		var defaultMap = Raccoon.Config.get('routes.default');
 		if (defaultMap) {
 			var pieces = request.url.split('/');
 			var assocs = Object.from(defaultMap, pieces);
@@ -177,7 +177,7 @@ Raccoon.extend({
 	},
 
 	loadLib: function(libs){
-		var libPath = Raccoon.Config.get('libraryPath');
+		var libPath = Raccoon.Config.get('library.path');
 		Array.from(libs).each(function(lib){
 			var file = libPath + lib;
 			if (new File(file).exists()) include(file);

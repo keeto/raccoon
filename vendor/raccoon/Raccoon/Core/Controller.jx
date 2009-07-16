@@ -22,11 +22,11 @@ this.Controller = new Class({
 	output: [],
 
 	initialize: function(){
-		this.baseLayout = Raccoon.Config.get('layoutBase');
+		this.baseLayout = Raccoon.Config.get('layout.base');
 		this.templates = new Template({
-			path: Raccoon.Config.get('layoutPath'),
-			suffix: Raccoon.Config.get('layoutSuffix'),
-			pattern: Raccoon.Config.get('layoutTags')
+			path: Raccoon.Config.get('layout.path'),
+			suffix: Raccoon.Config.get('layout.suffix'),
+			pattern: Raccoon.Config.get('layout.tags')
 		});
 		this.loadAssets();
 	},
