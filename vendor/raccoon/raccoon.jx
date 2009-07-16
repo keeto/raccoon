@@ -67,7 +67,7 @@ var Raccoon = this.Raccoon = new Class({
 					Raccoon.CouchDB = new CouchDB(config.database);
 					break;
 				case 'mysql':
-					break;
+					break; 
 				case 'sqlite':
 					break;
 			}
