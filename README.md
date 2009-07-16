@@ -5,7 +5,7 @@ Raccoon is a small framework for creating server-side javascript applications, w
 
 Requirements
 ------------
-Raccoon only has one requirement: you'll need to have a web-server running v8cgi (version 0.6.0+). Because building, installing and running v8cgi is too complex to add here, we direct you to the official [v8cgi homepage](http://code.google.com/p/v8cgi/).
+Raccoon only has one requirement: you'll need to have a web-server running v8cgi trunk. Because building, installing and running v8cgi is too complex to add here, we direct you to the official [v8cgi homepage](http://code.google.com/p/v8cgi/).
 
 
 Docs and Samples
