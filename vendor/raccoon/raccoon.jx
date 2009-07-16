@@ -50,17 +50,18 @@ var Raccoon = this.Raccoon = new Class({
 
 		// FOR CLEANUP
 		/* added a flag in .cfg to check if cache can be used - mootooled compatibility */
-		if(config.cache){
 		var cache = Raccoon.Cache = new Cache();
-		var cacheDir = currentDir + '/_cache/';
-		var cachefiles = new Directory(cacheDir).listFiles();
-		cache.set('dir',cacheDir);
-		cachefiles.each(function(item){
-			cache.set('' + item, [cacheDir,item].join(''));
-		});
-		}
-
 		if (config.database) {
+			if(config.database.cache){
+				cache.set(config.database.adapter+'.cache',true);
+				var cacheDir = currentDir + '/_cache/';
+				var cachefiles = new Directory(cacheDir).listFiles();
+				cache.set('dir',cacheDir);
+				cachefiles.each(function(item){
+					cache.set('' + item, [cacheDir,item].join(''));
+				});
+			}
+			else cache.set(config.database.adapter+'.cache',false);
 			switch (config.database.adapter) {
 				case 'couchdb':
 					Raccoon.CouchDB = new CouchDB(config.database);
