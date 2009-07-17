@@ -65,7 +65,7 @@ this.Cache = function(){
 	};
 	this.File = function(file,mode,input,force) {
 	    if(file.test("user_")) return input;
-	    //response.write(JSON.encode([file,mode]));
+	    response.write(JSON.encode([file,mode,input]));
   	    var f = new File(file);
 	    var size,data,writes,ratio,clone,cEx;
 	    input = input || {};

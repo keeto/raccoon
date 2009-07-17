@@ -23,37 +23,17 @@ this.Auth = new Class({
 		this.setOptions(options);
 		this.db = new CouchDB(this.options.dboptions);
 		this.User = new User();
-		//response.write(JSON.encode(request.cookie));
+		//response.write(JSON.encode(request.cookie.Auth));
 		
 		if(request.cookie["Auth"]) {
-			if(Raccoon.Cache.get('couchdb.cacheusers')) {
-			var cE = this.options.cookieExpiry;
-			var f = Raccoon.Cache.File(Raccoon.Cache.get('couchdb.usercache'),"r",false,false,false);
-			//response.write(f);
-			if(f !="") {
-				var u = [];
-				f= JSON.decode(f);
-				//response.write(typeOf(f))
-				f.each(function(obj){
-				u = obj.user;
-				//response.write(JSON.encode(obj.hash));
-				//u.push([obj.hash,request.cookie["Auth"]]);
-				//response.write(JSON.encode(Object.values(f)));
-				//if (Object.values(f).contains(request.cookie["Auth"])) response.write("yay");
-				//else response.write("boo");
-				});
-				Raccoon.Cache.set('couchdb.userlogged', f);
-			}
-			else Raccoon.Cache.set('couchdb.userlogged', []);
-			}
-			//response.write(JSON.encode(u));
-			Raccoon.fireEvent('onBeforeAutoLogin',request.cookie["Auth"]);
-			if(u) this.autologin(u,'auto');
-			//else this.logout();
-		}
+			var f = request.cookie["Auth"];
+			if(f) this.autologin(f,'auto');
+			else this.logout();
+		} 
 		return this;
 	},
 	doAuth: function(userdata) {
+		//response.write(JSON.encode(userdata));
 		this.User.sets(userdata);
 		this.User.set('auth',true);
 		this.authenticate(userdata);
@@ -66,7 +46,7 @@ this.Auth = new Class({
 			var doc = JSON.decode(userdata);
 			//response.write(JSON.encode(doc));
 			if(doc && doc.rows.length > 0) {
-			this.doAuth(doc.rows[0].doc);
+			if(doc.rows[0]) this.doAuth(doc.rows[0].doc);
 			}
 			break;
 			case false:default:
@@ -87,15 +67,17 @@ this.Auth = new Class({
 		var expires = nd;
 		response.cookie("Auth", token, expires);
 		if(Raccoon.Cache.get('couchdb.cacheusers')) {
-		var f = Raccoon.Cache.get('couchdb.usercache');
+		response.write(JSON.encode(Raccoon.Cache));
+		var f = Raccoon.Cache.get(token);
+		response.write(f);
 		var arr = Raccoon.Cache.get('couchdb.userlogged');
 		arr = JSON.decode(arr) || [];
 		var t = new Date().getTime();
 		var objy = {'hash':token,'user':data.email,'time':t};
-		arr.each(function(obj) {
+		/*arr.each(function(obj) {
 		    if(obj['hash'] == objy['hash']) { obj['time'] = new Date().getTime(); }
 		});
-		arr.push(objy);
+		arr.push(objy);*/
 		//if(n) arr.push(objy);
 		var authed = Raccoon.Cache.File(f,"w",JSON.encode(arr),false,false);
 		}
