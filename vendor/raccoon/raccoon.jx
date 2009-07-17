@@ -99,7 +99,7 @@ var Raccoon = this.Raccoon = new Class({
 		for (var x = 0, y = config.routes['map'].length; x < y; x++) {
 			this.addRoute.apply(this, config.routes['map'][x]);
 		}
-		this.loadAuthentication();
+		this.loadAuthentication(config.authdb);
 	},
 
 	'protected loadControllers': function(){
@@ -110,19 +110,9 @@ var Raccoon = this.Raccoon = new Class({
 		}
 	},
 	
-	'protected loadAuthentication':function(){
+	'protected loadAuthentication':function(config){
 		
-		var auth = Raccoon.Auth = new Auth({
-			dboptions:{ 
-				cache:false,
-				adapter:'couchdb',
-				host: 'http://localhost',
-				port: '5984',
-				db: 'users',
-				username: 'jabis',
-				password: 'perkele'
-			}
-		}); 
+		var auth = Raccoon.Auth = new Auth(config); 
 	},
 
 	addRoute: function(map, klass, action, method){
