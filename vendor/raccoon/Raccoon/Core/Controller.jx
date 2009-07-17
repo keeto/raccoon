@@ -61,7 +61,7 @@ this.Controller = new Class({
 	},
 
 	redirect: function(url){
-		response.headers({'Location': url});
+		response.header({'Location': url});
 	},
 
 	puts: function(str){

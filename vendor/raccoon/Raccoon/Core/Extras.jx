@@ -70,3 +70,4 @@ this.Assets = new Class({
 });
 
 })();
+

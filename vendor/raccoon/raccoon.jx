@@ -15,10 +15,11 @@ Code and Documentation:
 
 include('./Raccoon/Core/MooTools.jx');
 include('./Raccoon/Core/Extras.jx');
-include('./Raccoon/Core/Cache.jx');
-include('./Raccoon/Core/Controller.jx');
-include('./Raccoon/CouchDB/CouchDB.jx');
 
+include('./Raccoon/Core/Controller.jx');
+include('./Raccoon/CouchDB/CouchDB.jx'); 
+include('./Raccoon/CouchDB/Auth.jx'); 
+include('./Raccoon/Core/Cache.jx');
 (function(global){
 
 request.rawurl = request.get['url'] || "";
@@ -54,6 +55,8 @@ var Raccoon = this.Raccoon = new Class({
 		if (config.database) {
 			if(config.database.cache){
 				cache.set(config.database.adapter+'.cache',true);
+				cache.set(config.database.adapter+'.cacheusers',true);
+				cache.set(config.database.adapter+'.usercache',currentDir + '/../_usercache/users.json');
 				var cacheDir = currentDir + '/_cache/';
 				var cachefiles = new Directory(cacheDir).listFiles();
 				cache.set('dir',cacheDir);
@@ -96,6 +99,7 @@ var Raccoon = this.Raccoon = new Class({
 		for (var x = 0, y = config.routes['map'].length; x < y; x++) {
 			this.addRoute.apply(this, config.routes['map'][x]);
 		}
+		this.loadAuthentication();
 	},
 
 	'protected loadControllers': function(){
@@ -104,6 +108,21 @@ var Raccoon = this.Raccoon = new Class({
 		for (var x = 0, y = ctrls.length; x < y; x++) {
 			include(dir + ctrls[x]);
 		}
+	},
+	
+	'protected loadAuthentication':function(){
+		
+		var auth = Raccoon.Auth = new Auth({
+			dboptions:{ 
+				cache:false,
+				adapter:'couchdb',
+				host: 'http://localhost',
+				port: '5984',
+				db: 'users',
+				username: 'jabis',
+				password: 'perkele'
+			}
+		}); 
 	},
 
 	addRoute: function(map, klass, action, method){

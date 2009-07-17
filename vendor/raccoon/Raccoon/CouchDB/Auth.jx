@@ -1,0 +1,165 @@
+/** 
+ * CouchDB Authentication module for Raccoon
+ * 
+ */
+(function(){
+
+this.Auth = new Class({
+
+	Implements:[Options],
+	options:{
+	  dboptions:{
+		cache:false,
+		adapter:'couchdb',
+		host: 'http://localhost',
+		port: '5984',
+		db: 'users',
+		username: '',
+		password: ''
+	  },
+ 	  cookieExpiry: 4 //hours
+	},
+	initialize: function(options){
+		this.setOptions(options);
+		this.db = new CouchDB(this.options.dboptions);
+		this.User = new User();
+		//response.write(JSON.encode(request.cookie));
+		
+		if(request.cookie["Auth"]) {
+			if(Raccoon.Cache.get('couchdb.cacheusers')) {
+			var cE = this.options.cookieExpiry;
+			var f = Raccoon.Cache.File(Raccoon.Cache.get('couchdb.usercache'),"r",false,false,false);
+			//response.write(f);
+			if(f !="") {
+				var u = [];
+				f= JSON.decode(f);
+				//response.write(typeOf(f))
+				f.each(function(obj){
+				u = obj.user;
+				//response.write(JSON.encode(obj.hash));
+				//u.push([obj.hash,request.cookie["Auth"]]);
+				//response.write(JSON.encode(Object.values(f)));
+				//if (Object.values(f).contains(request.cookie["Auth"])) response.write("yay");
+				//else response.write("boo");
+				});
+				Raccoon.Cache.set('couchdb.userlogged', f);
+			}
+			else Raccoon.Cache.set('couchdb.userlogged', []);
+			}
+			//response.write(JSON.encode(u));
+			Raccoon.fireEvent('onBeforeAutoLogin',request.cookie["Auth"]);
+			if(u) this.autologin(u,'auto');
+			//else this.logout();
+		}
+		return this;
+	},
+	doAuth: function(userdata) {
+		this.User.sets(userdata);
+		this.User.set('auth',true);
+		this.authenticate(userdata);
+		return this;	
+	},
+	'protected autologin': function(data,method){
+		switch(method) {
+			case 'auto':
+			var userdata = this.db.view('user','email',{key:data,include_docs:true});
+			var doc = JSON.decode(userdata);
+			//response.write(JSON.encode(doc));
+			if(doc && doc.rows.length > 0) {
+			this.doAuth(doc.rows[0].doc);
+			}
+			break;
+			case false:default:
+			break;
+		}
+	},
+	'protected authenticate':function(data) {
+		this.isLogged = true;
+		var traw = data.email+data._rev+data.password;
+		var token = Util.sha1(traw);
+		var id = data._id;
+		data.authKey =  token;
+		var d = data;
+		var now = new Date();	
+		var hours = now.getHours()+this.options.cookieExpiry;
+		var nd = new Date().setHours(hours);
+		nd = new Date(nd);
+		var expires = nd;
+		response.cookie("Auth", token, expires);
+		if(Raccoon.Cache.get('couchdb.cacheusers')) {
+		var f = Raccoon.Cache.get('couchdb.usercache');
+		var arr = Raccoon.Cache.get('couchdb.userlogged');
+		arr = JSON.decode(arr) || [];
+		var t = new Date().getTime();
+		var objy = {'hash':token,'user':data.email,'time':t};
+		arr.each(function(obj) {
+		    if(obj['hash'] == objy['hash']) { obj['time'] = new Date().getTime(); }
+		});
+		arr.push(objy);
+		//if(n) arr.push(objy);
+		var authed = Raccoon.Cache.File(f,"w",JSON.encode(arr),false,false);
+		}
+		return this;
+	},
+	logout:function() {
+		var now = new Date();	
+		var minutes = now.getHours()-4;
+		var nd = new Date().setHours(minutes);
+		nd = new Date(nd);
+		var expires = nd;
+		response.cookie("Auth", null, expires);
+	},
+	'protected getAllUsers':function() {
+		return this.db.request('GET','_all_docs',{include_docs:true});
+	},
+	get:function(key) {
+		return this[key];
+	},
+	getUser:function(){
+		return this.User;
+	},
+	getAuth:function(){
+		return this.User.get('auth');
+	},
+	checkUser: function(data){
+		this.docs = this.db.view('user','x',{key:data});
+	}
+
+});
+
+this.User = new Class({
+	initialize:function() {
+		this.auth=false;
+		this.roles=["visitor"];
+		return this;
+	},
+	get:function(key) {
+		return this[key];
+	},
+	set:function(key,value) {
+		this[key] = value;
+		return this;
+	},
+	sets:function(obj) {
+		switch(typeOf(obj)) {
+		case "array":
+		obj.each(function(value,key) {
+			this.set(key,value);
+		});
+		break;
+		case "object":
+		try {
+		for (var key in obj) {
+		 this.set(key, obj[key]);
+		}
+		} catch(err) { response.write(err); }
+		break;
+		default:
+		this.set(key,value);
+		break;
+		}
+		return this;
+	}
+});
+
+})();
