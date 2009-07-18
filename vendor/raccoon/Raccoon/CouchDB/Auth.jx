@@ -27,9 +27,9 @@ this.Auth = new Class({
 		
 		if(request.cookie["Auth"]) {
 			var f = request.cookie["Auth"];
-			var x = Raccoon.Cache.get(f);
-			response.write(x);
-			if(f) this.autologin(f,'auto');
+			var x = Raccoon.Cache.File(Raccoon.Cache.get(f),"r",false,false,false);
+			x=JSON.decode(x)[0];
+			if(f) this.autologin(x.user,'auto');
 			else this.logout();
 		} 
 		return this;
@@ -120,28 +120,25 @@ this.User = new Class({
 		return this;
 	},
 	sets:function(obj) {
-		//response.write(typeOf(obj));
 		switch(typeOf(obj)) {
 			case "array":
 			obj.each(function(value,key) {
 			this.set(key,value);
 			});
-		break;
-		case "object":
-		try {
-		for (var key in obj) {
-		 //response.write(JSON.encode([key,obj[key]]));
-		 this.set(key, obj[key]);
+			break;
+			case "object":
+			try {
+				for (var key in obj) {
+					this.set(key, obj[key]);
+				}
+			} catch(err) { response.write(JSON.encode(err)); }
+			break;
+			case "string":default:
+			obj = JSON.decode(obj);
+			this.sets(obj);
+			break;
 		}
-		} catch(err) { response.write(JSON.encode(err)); }
-		break;
-		case "string":default:
-		//response.write(JSON.encode(obj))
-		obj = JSON.decode(obj)
-		this.sets(obj);
-		break;
-		}
-		return this;
+	return this;
 	}
 });
 
