@@ -40,60 +40,65 @@ this.Cache = function(){
 	this.get = function(key) {
 		return storage[key];
 	};
+
 	this.set = function(key,value) {
 		storage[key] = value;
 		return this;
 	};
+
 	this.check = function(file,force) {
-	    var f = new File(file);
-	    var lifetime = 30;
-	    var minsize = 200;
-	    var size,ratio,clone,cEx;
-	    var writes = false;
-	    cEx = f.exists();
-	    if(cEx) {
-		var creation = f.stat().mtime;
-		var currstamp = Math.round(new Date().getTime()/1000.0);
-		ratio = (((currstamp-creation)/24/60/60)*100);
-		size = f.stat().size;
-	       writes = ((ratio > lifetime) || (size < minsize) || (force))?true:false;
-	   }
-	   else {
-		writes = true;
-	   }
-	   return writes;
+		var f = new File(file);
+		var lifetime = 30;
+		var minsize = 200;
+		var size,ratio,clone,cEx;
+		var writes = false;
+		cEx = f.exists();
+		if(cEx) {
+			var creation = f.stat().mtime;
+			var currstamp = Math.round(new Date().getTime()/1000.0);
+			ratio = (((currstamp-creation)/24/60/60)*100);
+			size = f.stat().size;
+			writes = ((ratio > lifetime) || (size < minsize) || (force))?true:false;
+		}
+		else {
+			writes = true;
+		}
+		return writes;
 	};
+
 	this.File = function(file,mode,input,force) {
-	    if(file.test("user_")) return input;
-	    //response.write(JSON.encode([file,mode,input]));
-  	    var f = new File(file);
-	    var size,data,writes,ratio,clone,cEx;
-	    input = input || {};
-	    mode = mode || "r";
-	    try {
-	    f.open(mode);
-	    data = f.read();
-	    } catch(err) { f.open("a"); data= ""; }
- 	    if((mode=="w") || (mode=="a")) {
-	    var pth = [global.Config["sessionPath"],[session.getId(),Number.random(600,1800)].join('_')].join('/');
-	    clone = f.copy(pth).open("w");
+		if(file.test("user_")) return input;
+		var f = new File(file);
+		var size,data,writes,ratio,clone,cEx;
+		input = input || {};
+		mode = mode || "r";
+		try {
+			f.open(mode);
+			data = f.read();
+		} catch(err) { 
+			f.open("a"); 
+			data= "";
+		}
+ 		if((mode=="w") || (mode=="a")) {
+			var pth = [global.Config["sessionPath"],[session.getId(),Number.random(600,1800)].join('_')].join('/');
+			clone = f.copy(pth).open("w");
  		try {
-	           var n = f.toString();
-		    clone.write(input);
-		    f.close().remove();
-		    clone.move(n);
-		} catch(err) { response.write(err); }
+			var n = f.toString();
+			clone.write(input);
+			f.close().remove();
+			clone.move(n);
+		} catch(err) { 
+			response.write(err); 
+		}
     		data = input;
-	       clone.close();
+		clone.close();
 		return data;
-	   } else {
-
-	   return data;
-	   }
+		} else {
+		return data;
+	   	}
 	};
 
-	return this;
-
+return this;
 };
 
 })();
