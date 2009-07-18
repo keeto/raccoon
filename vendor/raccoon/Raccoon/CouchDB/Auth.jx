@@ -67,7 +67,7 @@ this.Auth = new Class({
 		var nd = new Date().setHours(hours);
 		nd = new Date(nd);
 		var expires = nd;
-		response.cookie("Auth", token, expires);
+		response.cookie("Auth", token, expires,'/');
 		if(Raccoon.Cache.get('couchdb.cacheusers')) {
 			var file = [[Raccoon.Cache.get('couchdb.ucpath'),token].join('/'),'json'].join('.');
 			var t = new Date().getTime();
@@ -86,6 +86,10 @@ this.Auth = new Class({
 		var nd = new Date().setHours(minutes);
 		nd = new Date(nd);
 		var expires = nd;
+		var token = Raccoon.Cache.get(request.cookie.Auth);
+		this.User.set('auth',false);
+		this.User = new User();
+		if(token && token != "undefined") new File(token).remove();
 		response.cookie("Auth", null, expires);
 	},
 	'protected getAllUsers':function() {
