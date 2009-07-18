@@ -27,13 +27,15 @@ this.Auth = new Class({
 		
 		if(request.cookie["Auth"]) {
 			var f = request.cookie["Auth"];
+			var x = Raccoon.Cache.get(f);
+			response.write(x);
 			if(f) this.autologin(f,'auto');
 			else this.logout();
 		} 
 		return this;
 	},
 	doAuth: function(userdata) {
-		//response.write(JSON.encode(userdata));
+		//response.write(userdata);
 		this.User.sets(userdata);
 		this.User.set('auth',true);
 		this.authenticate(userdata);
@@ -45,7 +47,7 @@ this.Auth = new Class({
 			var userdata = this.db.view('user','email',{key:data,include_docs:true});
 			var doc = JSON.decode(userdata);
 			//response.write(JSON.encode(doc));
-			if(doc && doc.rows.length > 0) {
+			if(doc) {
 			if(doc.rows[0]) this.doAuth(doc.rows[0].doc);
 			}
 			break;
@@ -54,12 +56,12 @@ this.Auth = new Class({
 		}
 	},
 	'protected authenticate':function(data) {
+		if(typeOf(data) == "string") data = JSON.decode(data);
 		this.isLogged = true;
 		var traw = data.email+data._rev+data.password;
 		var token = Util.sha1(traw);
 		var id = data._id;
-		data.authKey =  token;
-		var d = data;
+		data.authKey = token;
 		var now = new Date();	
 		var hours = now.getHours()+this.options.cookieExpiry;
 		var nd = new Date().setHours(hours);
@@ -67,21 +69,16 @@ this.Auth = new Class({
 		var expires = nd;
 		response.cookie("Auth", token, expires);
 		if(Raccoon.Cache.get('couchdb.cacheusers')) {
-		response.write(JSON.encode(Raccoon.Cache));
-		var f = Raccoon.Cache.get(token);
-		response.write(f);
-		var arr = Raccoon.Cache.get('couchdb.userlogged');
-		arr = JSON.decode(arr) || [];
-		var t = new Date().getTime();
-		var objy = {'hash':token,'user':data.email,'time':t};
-		/*arr.each(function(obj) {
-		    if(obj['hash'] == objy['hash']) { obj['time'] = new Date().getTime(); }
-		});
-		arr.push(objy);*/
-		//if(n) arr.push(objy);
-		var authed = Raccoon.Cache.File(f,"w",JSON.encode(arr),false,false);
+			var file = [[Raccoon.Cache.get('couchdb.ucpath'),token].join('/'),'json'].join('.');
+			var t = new Date().getTime();
+			var objy = {'hash':token,'user':data.email,'time':t};
+			var f = Raccoon.Cache.get(token);
+			if(!f || typeOf(f) == "null") f = file;
+			arr = [];
+			arr.push(objy)
+			Raccoon.Cache.File(f,"w",JSON.encode(arr),false,false);
 		}
-		return this;
+		return this; 
 	},
 	logout:function() {
 		var now = new Date();	
@@ -123,21 +120,25 @@ this.User = new Class({
 		return this;
 	},
 	sets:function(obj) {
+		//response.write(typeOf(obj));
 		switch(typeOf(obj)) {
-		case "array":
-		obj.each(function(value,key) {
+			case "array":
+			obj.each(function(value,key) {
 			this.set(key,value);
-		});
+			});
 		break;
 		case "object":
 		try {
 		for (var key in obj) {
+		 //response.write(JSON.encode([key,obj[key]]));
 		 this.set(key, obj[key]);
 		}
-		} catch(err) { response.write(err); }
+		} catch(err) { response.write(JSON.encode(err)); }
 		break;
-		default:
-		this.set(key,value);
+		case "string":default:
+		//response.write(JSON.encode(obj))
+		obj = JSON.decode(obj)
+		this.sets(obj);
 		break;
 		}
 		return this;

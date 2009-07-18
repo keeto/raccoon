@@ -57,11 +57,14 @@ var Raccoon = this.Raccoon = new Class({
 				cache.set(config.database.adapter+'.cacheusers',true);
 
 				var ucpath = config.authdb.ucpath;
+				//response.write(ucpath);
 				var ucfiles = new Directory(ucpath).listFiles();
 				cache.set(config.database.adapter+'.ucpath',ucpath);
+				//response.write(cache.get('couchdb.ucpath'));
 				ucfiles.each(function(item) {
-					//response.write(item);
-					cache.set('' + item, [ucpath,item].join('/'));
+					//item = item.replace('.json','');
+					var path=[ucpath,item].join('/');	
+					cache.set(item.replace('.json',''),path);
 				});
 				var cacheDir = config.database.cachepath;
 				var cachefiles = new Directory(cacheDir).listFiles();
