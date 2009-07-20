@@ -67,7 +67,7 @@ this.Cache = function(){
 	};
 
 	this.File = function(file,mode,input,force) {
-		if(file.test("user_")) return input;
+		if(file.test("user_")||file.test("_list_")) return input;
 		var f = new File(file);
 		var size,data,writes,ratio,clone,cEx;
 		input = input || {};
