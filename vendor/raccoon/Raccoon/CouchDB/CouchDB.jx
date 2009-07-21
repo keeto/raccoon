@@ -9,8 +9,8 @@ License:
 
 include('./Curl.jx');
 include('./HTTPCurl.jx');
-
-var CouchDB = new Class({
+(function(){
+var CouchDB = this.CouchDB = new Class({
 
 	Implements: Options,
 
@@ -83,7 +83,9 @@ var CouchDB = new Class({
 	DELETE: function(url, args, data){
 		return this.request('DELETE', url, args, data);
 	},
-
+	uuids: function(count) {
+		return this.dbRequest('GET','_uuids',{'count':(count)?count:20});
+	},
 	view: function(design, view, args){
 		// Commented out items: For cleanup.
 		if(this.cache) {
@@ -110,4 +112,74 @@ var CouchDB = new Class({
 
 });
 
-exports.CouchDB = CouchDB;
+this.CouchDoc = new Class({
+	initialize:function(json) {
+		this.set('new',false);
+		this.set('editable',{users:["info@mootooled.net"],groups:["admin"]});
+		if(typeOf(json) != false) {
+			this.sets(json);
+		}
+		return this;
+	},
+	get:function(key) {
+		return (this[key])?this[key]:null;
+	},
+	getKeys:function() {
+		return Object.keys(this);
+	},
+	getValues:function() {
+		return Object.values(this);
+	},
+	getObj:function() {
+		var newDoc = Object.from(this.getKeys(),this.getValues());
+		if(newDoc.caller) delete newDoc.caller;
+		return newDoc;
+	},
+	toJson:function() {
+		return JSON.encode(this);
+	},
+	set:function(key,value) {
+		this[key] = value;
+		return this;
+	},
+	save:function() {
+		if(!this.get('url')) return false;
+		var conn = Raccoon.CouchDB;
+		var newDoc = this.getObj();
+		var id = this.get('_id');
+		var rev = this.get('_rev');
+		if(id || rev) {
+		var req = conn.request('PUT',String.from(id),{rev:String.from(rev)},newDoc);
+		} else {
+		var req = conn.request('POST',null,false,newDoc);
+		}
+		var result = Object.keys(req.body);
+		if(result.contains("ok")) { this.set('_rev',req.body.rev); return this; }
+		else if(result.contains("error")) { return result.body; }
+		else return this;
+	},
+	sets:function(obj) {
+		switch(typeOf(obj)) {
+			case "array":
+			obj.each(function(value,key) {
+			this.set(key,value);
+			});
+			break;
+			case "object":
+			try {
+				for (var key in obj) {
+					this.set(key, obj[key]);
+				}
+			} catch(err) { response.write(JSON.encode(err)); }
+			break;
+			case "string":default:
+			var decobj = JSON.decode(obj);
+			if(decobj) this.sets(decobj);
+			else this.set('rawstring',obj);
+			break;
+		}
+	return this;
+	}
+});
+
+})();
