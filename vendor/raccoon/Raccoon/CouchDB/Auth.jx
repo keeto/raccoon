@@ -22,15 +22,17 @@ this.Auth = new Class({
 	initialize: function(options){
 		this.setOptions(options);
 		this.db = new CouchDB(this.options.dboptions);
-		this.User = new User();
+		this.User = new User(this.options.dboptions);
 		//response.write(JSON.encode(request.cookie.Auth));
-		
+
 		if(request.cookie["Auth"]) {
 			var f = request.cookie["Auth"];
+			if(Raccoon.Cache.get('couchdb.cacheusers')) {
 			var x = Raccoon.Cache.File(Raccoon.Cache.get(f),"r",false,false,false);
 			x=JSON.decode(x)[0];
 			if(f) this.autologin(x.user,'auto');
 			else this.logout();
+			}
 		} 
 		return this;
 	},
@@ -78,6 +80,7 @@ this.Auth = new Class({
 			arr.push(objy)
 			Raccoon.Cache.File(f,"w",JSON.encode(arr),false,false);
 		}
+		this.getUser().set('nextAuth',token);
 		return this; 
 	},
 	logout:function() {
@@ -111,7 +114,7 @@ this.Auth = new Class({
 });
 
 this.User = new Class({
-	initialize:function() {
+	initialize:function(dbopt) {
 		this.auth=false;
 		this.roles=["visitor"];
 		return this;
@@ -122,6 +125,27 @@ this.User = new Class({
 	set:function(key,value) {
 		this[key] = value;
 		return this;
+	},
+	save:function() {
+		var conn = Raccoon.Auth.db;
+		var newUser = Object.from(Object.keys(this),Object.values(this));
+		var id = newUser._id;
+		var rev = newUser._rev;
+		delete newUser.caller;
+		delete newUser._id;
+		delete newUser.auth;
+		if(Raccoon.Cache.get('couchdb.cacheusers')) {
+		var f = new File(Raccoon.Cache.get(String.from(newUser.authKey)));
+		if(f.exists()) f.remove();
+		}
+		delete newUser.authKey;
+		newUser.authKey = newUser.nextAuth;
+		delete newUser.nextAuth;
+		var req = conn.request('PUT',String.from(id),{rev:String.from(rev)},newUser);
+		var result = Object.keys(req.body);
+		if(result.contains("ok")) { this.set('authKey',newUser.authKey); this.set('_rev',req.body.rev); return this; }
+		else if(result.contains("error")) { return result.body; }
+		else return this;
 	},
 	sets:function(obj) {
 		switch(typeOf(obj)) {
