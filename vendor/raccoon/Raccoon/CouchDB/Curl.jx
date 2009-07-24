@@ -48,7 +48,7 @@ var Curl = new Class({
 		data = data || '';
 		if (({'PUT': 1, 'POST': 1})[method] && data) {
 			buff.push('-H "Content-Length: ' + data.length + '"');
-			buff.push('-H "Content-Type: application/x-www-form-urlencoded"');
+			buff.push('-H "Content-Type: application/x-www-form-urlencoded; charset=utf-8"');
 			buff.push('-d "' + data.replace(/"/g, '\\"') +'"')
 		}
 

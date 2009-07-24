@@ -130,6 +130,10 @@ this.CouchDoc = new Class({
 	getValues:function() {
 		return Object.values(this);
 	},
+	erase:function(key) {
+		if(Object.keys(this).contains(key)) delete key;
+		return this;
+	},
 	getObj:function() {
 		var newDoc = Object.from(this.getKeys(),this.getValues());
 		if(newDoc.caller) delete newDoc.caller;
@@ -146,17 +150,23 @@ this.CouchDoc = new Class({
 		if(!this.get('url')) return false;
 		var conn = Raccoon.CouchDB;
 		var newDoc = this.getObj();
-		var id = this.get('_id');
-		var rev = this.get('_rev');
-		if(id || rev) {
-		var req = conn.request('PUT',String.from(id),{rev:String.from(rev)},newDoc);
-		} else {
-		var req = conn.request('POST',null,false,newDoc);
+		var id = newDoc._id;
+		var rev = newDoc._rev;
+		if(newDoc.caller) delete newDoc.caller;
+		//delete newDoc._rev;
+		//return response.write(JSON.encode(newDoc));
+		//conn.curl.setHeader("Content-Type","application/x-www-form-urlencoded; charset=utf-8");
+		try {
+		var req = conn.request('PUT',String.from(id),false,newDoc);
+		//return req.body;
+		} catch(err) {
+		return JSON.encode({'error':err});
 		}
 		var result = Object.keys(req.body);
-		if(result.contains("ok")) { this.set('_rev',req.body.rev); return this; }
-		else if(result.contains("error")) { return result.body; }
-		else return this;
+		//return req.body;
+		if(result.contains("ok")) { this.set('_rev',String.from(req.body.rev)); return JSON.encode(this); }
+		else if(result.contains("error")) { return JSON.encode(req.body); }
+		else return false;
 	},
 	sets:function(obj) {
 		switch(typeOf(obj)) {
@@ -170,7 +180,7 @@ this.CouchDoc = new Class({
 				for (var key in obj) {
 					this.set(key, obj[key]);
 				}
-			} catch(err) { response.write(JSON.encode(err)); }
+			} catch(err) { return response.write(JSON.encode(err)); }
 			break;
 			case "string":default:
 			var decobj = JSON.decode(obj);
