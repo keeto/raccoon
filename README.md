@@ -2,6 +2,7 @@ Raccoon: The Sneaky Little Framework
 ====================================
 Raccoon is a small framework for creating server-side javascript applications, written on top of MooTools and running on v8cgi.
 
+> *Notice:* Raccoon is currently undergoing transition. The current <master> branch is obsolete and is being rewritten. Follow the repo and wait for announcements.
 
 Requirements
 ------------
