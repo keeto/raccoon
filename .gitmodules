@@ -1,0 +1,3 @@
+[submodule "Externs/deck"]
+	path = Externs/deck
+	url = git://github.com/keeto/deck.git
